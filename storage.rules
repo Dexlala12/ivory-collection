@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// IVORY — Firebase Storage security rules.
+// Product/site images uploaded from the admin portal (src/admin/components/ImageUploader.tsx)
+// land under media/{folder}/{file}. Public read (the storefront renders these URLs directly);
+// only signed-in staff can upload or manage files.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

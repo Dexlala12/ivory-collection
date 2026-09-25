@@ -83,9 +83,10 @@ export default function Staff() {
       <div className="mt-8 border border-black/10 p-4 space-y-2">
         <p className="text-[10px] font-mono tracking-wider text-black/60 uppercase font-bold">Adding a new staff member</p>
         <p className="text-xs text-black/60 leading-relaxed">
-          Create their login in the Supabase dashboard (Authentication → Add user) — they'll appear
-          here automatically as an <span className="font-mono">editor</span>. Then promote them to
-          <span className="font-mono"> admin</span> above if needed. See <span className="font-mono">supabase/README.md</span>.
+          Create their login in the Firebase console (Authentication → Add user) — the first time
+          they sign in at <span className="font-mono">/admin</span> they'll appear here automatically
+          as an <span className="font-mono">editor</span>. Then promote them to
+          <span className="font-mono"> admin</span> above if needed. See <span className="font-mono">firebase/README.md</span>.
         </p>
       </div>
     </div>

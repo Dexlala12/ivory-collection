@@ -9,9 +9,10 @@ interface ImageUploaderProps {
   label?: string;
 }
 
-// Lets staff either upload a file (stored in the Supabase "media" bucket) or
-// paste a URL directly — keeps the existing Unsplash-URL workflow available
-// while making local uploads the easy default for non-technical users.
+// Lets staff either upload a file (stored in Firebase Storage under the
+// given folder) or paste a URL directly — keeps the existing Unsplash-URL
+// workflow available while making local uploads the easy default for
+// non-technical users.
 export default function ImageUploader({ value, onChange, folder, label = 'Image' }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);

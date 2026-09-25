@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { fetchSiteContent, type SiteContentBundle } from '../lib/api';
 import { PRODUCTS } from '../data/products';
 import {
@@ -33,9 +33,9 @@ const FALLBACK_BUNDLE: SiteContentBundle = {
 interface SiteContentValue extends SiteContentBundle {
   categoriesWithAll: Category[];
   loading: boolean;
-  /** Set when Supabase is configured but the fetch failed — bundled fallback content is shown instead. */
+  /** Set when Firebase is configured but the fetch failed — bundled fallback content is shown instead. */
   error: string | null;
-  /** Re-fetches from Supabase. Call after any admin-portal mutation so the storefront reflects the edit immediately. */
+  /** Re-fetches from Firebase. Call after any admin-portal mutation so the storefront reflects the edit immediately. */
   refresh: () => Promise<void>;
 }
 
@@ -43,11 +43,11 @@ const SiteContentContext = createContext<SiteContentValue | null>(null);
 
 export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [bundle, setBundle] = useState<SiteContentBundle>(FALLBACK_BUNDLE);
-  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [loading, setLoading] = useState(isFirebaseConfigured);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!isSupabaseConfigured) {
+    if (!isFirebaseConfigured) {
       setBundle(FALLBACK_BUNDLE);
       setLoading(false);
       return;
@@ -58,7 +58,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       setBundle(data);
       setError(null);
     } catch (err) {
-      console.error('Failed to load site content from Supabase, showing bundled fallback content.', err);
+      console.error('Failed to load site content from Firebase, showing bundled fallback content.', err);
       setBundle(FALLBACK_BUNDLE);
       setError(err instanceof Error ? err.message : 'Failed to load site content.');
     } finally {

@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { useAdminAuth } from './AdminAuthContext';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 
 export default function Login() {
   const { session, signIn } = useAdminAuth();
@@ -14,15 +14,15 @@ export default function Login() {
 
   if (session) return <Navigate to="/admin" replace />;
 
-  if (!isSupabaseConfigured) {
+  if (!isFirebaseConfigured) {
     return (
       <div className="min-h-screen bg-white text-black flex items-center justify-center p-6">
         <div className="max-w-md text-center space-y-3 font-mono text-xs uppercase tracking-wider">
           <p className="font-bold">Backend not configured</p>
           <p className="text-black/60 normal-case">
-            The admin portal needs Supabase set up first. Follow the steps in
-            <code className="mx-1 bg-zinc-100 px-1.5 py-0.5">supabase/README.md</code>
-            to create a project, run the schema, and set <code className="bg-zinc-100 px-1.5 py-0.5">VITE_SUPABASE_URL</code> / <code className="bg-zinc-100 px-1.5 py-0.5">VITE_SUPABASE_ANON_KEY</code> in <code className="bg-zinc-100 px-1.5 py-0.5">.env.local</code>.
+            The admin portal needs Firebase set up first. Follow the steps in
+            <code className="mx-1 bg-zinc-100 px-1.5 py-0.5">firebase/README.md</code>
+            to create a project and set the <code className="bg-zinc-100 px-1.5 py-0.5">VITE_FIREBASE_*</code> variables in <code className="bg-zinc-100 px-1.5 py-0.5">.env.local</code>.
           </p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function Login() {
         </form>
 
         <p className="text-[9px] font-mono text-black/30 text-center uppercase leading-relaxed">
-          Staff accounts are created in Supabase — see supabase/README.md
+          Staff accounts are created in Firebase — see firebase/README.md
         </p>
       </div>
     </div>

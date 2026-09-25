@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// IVORY — Firestore security rules.
+// Public storefront (signed out) may only READ content collections and
+// CREATE orders. Any signed-in staff account may read/write all content.
+// Only admins may manage the profiles collection (Staff screen); a signed-in
+// user may always create/read their own profile doc (bootstraps as 'editor').
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Public read, staff write — every storefront content collection.
+    match /products/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /categories/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /activities/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /promoTiles/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /faqs/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /pages/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /siteContent/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /settings/{docId} { allow read: if true; allow write: if signedIn(); }
+    match /promoCodes/{docId} { allow read: if true; allow write: if signedIn(); }
+
+    // Orders: anyone can create a checkout inquiry; only staff can read or manage the list.
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update, delete: if signedIn();
+    }
+
+    // Profiles: everyone can read/create their own row (bootstraps as
+    // 'editor' — role can't be self-escalated at creation); only admins can
+    // read the full staff list or change/remove anyone else.
+    match /profiles/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.role == 'editor';
+      allow update, delete: if isAdmin();
+    }
+  }
+}

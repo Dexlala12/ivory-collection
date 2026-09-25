@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { fetchProfile } from '../lib/api';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, type User } from 'firebase/auth';
+import { auth, isFirebaseConfigured } from '../lib/firebase';
+import { ensureProfile, fetchProfile } from '../lib/api';
 import type { Profile } from '../types';
 
 interface AdminAuthValue {
-  session: Session | null;
+  session: User | null;
   profile: Profile | null;
   /** True while the initial session/profile check is in flight. */
   loading: boolean;
@@ -18,25 +18,30 @@ interface AdminAuthValue {
 const AdminAuthContext = createContext<AdminAuthValue | null>(null);
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
+    if (!isFirebaseConfigured) {
       setLoading(false);
       return;
     }
 
     let cancelled = false;
 
-    const loadProfile = async (nextSession: Session | null) => {
-      if (!nextSession) {
-        if (!cancelled) { setProfile(null); setLoading(false); }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (cancelled) return;
+      setSession(user);
+      setLoading(true);
+      if (!user) {
+        setProfile(null);
+        setLoading(false);
         return;
       }
       try {
-        const p = await fetchProfile(nextSession.user.id);
+        await ensureProfile(user.uid, user.email);
+        const p = await fetchProfile(user.uid);
         if (!cancelled) setProfile(p);
       } catch (err) {
         console.error('Failed to load staff profile:', err);
@@ -44,32 +49,25 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    };
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      loadProfile(data.session);
-    });
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setLoading(true);
-      loadProfile(nextSession);
     });
 
     return () => {
       cancelled = true;
-      subscription.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Failed to sign in.' };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
   };
 
   const value: AdminAuthValue = {

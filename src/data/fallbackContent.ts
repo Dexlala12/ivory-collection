@@ -1,9 +1,9 @@
-// Fallback content used when the Supabase backend isn't configured yet (no
-// VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY) or a fetch fails — keeps the
-// storefront fully functional before/without the admin backend. Mirrors
-// supabase/seed.sql exactly; source of truth for products/categories/
-// activities/promo tiles/FAQs is data/products.ts (also used to build
-// supabase/seed.sql), everything else is defined here.
+// Fallback content used when the Firebase backend isn't configured yet (no
+// VITE_FIREBASE_* vars) or a fetch fails — keeps the storefront fully
+// functional before/without the admin backend. Mirrors firebase/seed.ts
+// exactly; source of truth for products/categories/activities/promo
+// tiles/FAQs is data/products.ts (also used to build firebase/seed.ts),
+// everything else is defined here.
 import { CATEGORIES, ACTIVITIES, PROMO_TILES, FAQS } from './products';
 import type {
   Category, Activity, PromoTile, Faq, Page, PageSlug,

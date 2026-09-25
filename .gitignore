@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+firebase/serviceAccountKey.json
+.firebase/
+firebase-debug.log
