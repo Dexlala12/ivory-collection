@@ -1,9 +1,28 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, type User } from 'firebase/auth';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut as firebaseSignOut,
+  type User
+} from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '../lib/firebase';
 import { ensureProfile, fetchProfile } from '../lib/api';
 import type { Profile } from '../types';
+
+// Unlike email/password (only works for accounts an admin creates by hand in
+// the Firebase console), Google sign-in auto-provisions a Firebase Auth
+// account for any Google user on first login. Gate it to specific emails so
+// anyone with a Gmail account can't self-provision editor access.
+const ALLOWED_GOOGLE_EMAILS = ['lalapotato69@gmail.com'];
+
+function isAllowedUser(user: User): boolean {
+  const isGoogleUser = user.providerData.some((p) => p.providerId === 'google.com');
+  if (!isGoogleUser) return true;
+  return ALLOWED_GOOGLE_EMAILS.includes((user.email ?? '').toLowerCase());
+}
 
 interface AdminAuthValue {
   session: User | null;
@@ -12,6 +31,7 @@ interface AdminAuthValue {
   loading: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -32,6 +52,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (cancelled) return;
+
+      if (user && !isAllowedUser(user)) {
+        await firebaseSignOut(auth);
+        return;
+      }
+
       setSession(user);
       setLoading(true);
       if (!user) {
@@ -66,12 +92,25 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      if (!isAllowedUser(result.user)) {
+        await firebaseSignOut(auth);
+        return { error: 'This Google account is not authorized for admin access.' };
+      }
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Failed to sign in with Google.' };
+    }
+  };
+
   const signOut = async () => {
     await firebaseSignOut(auth);
   };
 
   const value: AdminAuthValue = {
-    session, profile, loading, isAdmin: profile?.role === 'admin', signIn, signOut
+    session, profile, loading, isAdmin: profile?.role === 'admin', signIn, signInWithGoogle, signOut
   };
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
