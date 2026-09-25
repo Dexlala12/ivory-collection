@@ -1,0 +1,6 @@
+{
+  "name": "IVORY",
+  "description": "Premium minimalist activewear and streetwear store. A cohesive, high-end shopping experience featuring clean typography, a strict black & white aesthetic, and integrated LankaPay checkout.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
