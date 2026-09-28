@@ -29,7 +29,6 @@ interface AdminAuthValue {
   profile: Profile | null;
   /** True while the initial session/profile check is in flight. */
   loading: boolean;
-  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -110,7 +109,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const value: AdminAuthValue = {
-    session, profile, loading, isAdmin: profile?.role === 'admin', signIn, signInWithGoogle, signOut
+    session, profile, loading, signIn, signInWithGoogle, signOut
   };
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;

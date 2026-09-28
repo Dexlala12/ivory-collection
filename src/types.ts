@@ -182,11 +182,8 @@ export interface PromoCode {
   active: boolean;
 }
 
-export type StaffRole = 'admin' | 'editor';
-
 export interface Profile {
   id: string;
   email: string;
-  role: StaffRole;
   createdAt: string;
 }

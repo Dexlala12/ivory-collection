@@ -13,11 +13,12 @@ const NAV_ITEMS = [
   { to: '/admin/header-footer', label: 'Header & Footer', icon: PanelTop },
   { to: '/admin/pages', label: 'Pages & FAQ', icon: FileText },
   { to: '/admin/settings', label: 'Settings', icon: SettingsIcon },
-  { to: '/admin/orders', label: 'Orders', icon: ClipboardList }
+  { to: '/admin/orders', label: 'Orders', icon: ClipboardList },
+  { to: '/admin/staff', label: 'Staff', icon: Users }
 ];
 
 export default function Layout() {
-  const { profile, isAdmin, signOut } = useAdminAuth();
+  const { profile, signOut } = useAdminAuth();
 
   return (
     <div className="min-h-screen bg-white text-black flex font-sans">
@@ -44,19 +45,6 @@ export default function Layout() {
               <span>{label}</span>
             </NavLink>
           ))}
-          {isAdmin && (
-            <NavLink
-              to="/admin/staff"
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-6 py-2.5 text-[11px] font-mono tracking-wider uppercase transition-colors ${
-                  isActive ? 'bg-white text-black font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`
-              }
-            >
-              <Users size={14} />
-              <span>Staff</span>
-            </NavLink>
-          )}
         </nav>
 
         <div className="px-6 py-4 border-t border-white/10 space-y-3">
@@ -66,7 +54,6 @@ export default function Layout() {
           </Link>
           <div className="space-y-1">
             <p className="text-[10px] font-mono text-white/70 truncate">{profile?.email}</p>
-            <p className="text-[9px] font-mono text-white/30 uppercase">{profile?.role ?? '—'}</p>
           </div>
           <button
             onClick={() => signOut()}

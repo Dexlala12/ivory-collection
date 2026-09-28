@@ -3,10 +3,12 @@ import {
   query, orderBy, serverTimestamp, Timestamp, type DocumentData, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut } from 'firebase/auth';
+import { db, storage, firebaseConfig } from './firebase';
 import type {
   Product, Category, Activity, PromoTile, Faq, Page, PageSlug,
-  HeaderContent, FooterContent, HomeHeroContent, Settings, PromoCode, Profile, StaffRole
+  HeaderContent, FooterContent, HomeHeroContent, Settings, PromoCode, Profile
 } from '../types';
 
 // ============================================================================
@@ -267,18 +269,18 @@ export async function fetchOrders(): Promise<OrderRow[]> {
 // ============================================================================
 
 function mapProfile(id: string, data: DocumentData): Profile {
-  return { id, email: data.email, role: data.role, createdAt: timestampToIso(data.createdAt) };
+  return { id, email: data.email, createdAt: timestampToIso(data.createdAt) };
 }
 
-// Creates profiles/{uid} the first time a staff member signs in. Always
-// defaults to 'editor' — matches Firestore rules, which only allow a user to
-// create their own profile doc with role 'editor' (self-promotion to admin is
-// blocked; see firebase/README.md for promoting the first admin by hand).
+// Creates profiles/{uid} the first time a staff member signs in (covers
+// Google sign-in, which auto-provisions the Firebase Auth account on first
+// login). Anyone with an admin-portal login is a full staff member — there's
+// no separate role tier to assign here.
 export async function ensureProfile(uid: string, email: string | null): Promise<void> {
   const ref = doc(db, 'profiles', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { email: email ?? '', role: 'editor', createdAt: serverTimestamp() });
+    await setDoc(ref, { email: email ?? '', createdAt: serverTimestamp() });
   }
 }
 
@@ -292,12 +294,26 @@ export async function fetchAllProfiles(): Promise<Profile[]> {
   return snap.docs.map((d) => mapProfile(d.id, d.data()));
 }
 
-export async function updateProfileRole(id: string, role: StaffRole): Promise<void> {
-  await updateDoc(doc(db, 'profiles', id), { role });
-}
-
 export async function removeStaff(id: string): Promise<void> {
   await deleteDoc(doc(db, 'profiles', id));
+}
+
+// Creates a new staff login (Firebase Auth user + profiles doc) from inside
+// the admin portal, so staff accounts no longer have to be created by hand in
+// the Firebase console. Runs the Auth call against a throwaway secondary
+// Firebase app instance — createUserWithEmailAndPassword signs in as the new
+// user on whichever auth instance it's called against, and doing that on a
+// secondary instance keeps the *current* admin's session untouched.
+export async function createStaffLogin(email: string, password: string): Promise<void> {
+  const secondaryApp = initializeApp(firebaseConfig, `staff-create-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    await setDoc(doc(db, 'profiles', cred.user.uid), { email, createdAt: serverTimestamp() });
+  } finally {
+    await secondarySignOut(secondaryAuth).catch(() => {});
+    await deleteApp(secondaryApp);
+  }
 }
 
 // ============================================================================

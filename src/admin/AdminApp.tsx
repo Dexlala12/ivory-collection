@@ -26,12 +26,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function RequireAdmin({ children }: { children: ReactNode }) {
-  const { isAdmin } = useAdminAuth();
-  if (!isAdmin) return <Navigate to="/admin" replace />;
-  return <>{children}</>;
-}
-
 export default function AdminApp() {
   return (
     <AdminAuthProvider>
@@ -53,14 +47,7 @@ export default function AdminApp() {
           <Route path="pages" element={<Pages />} />
           <Route path="settings" element={<SettingsSection />} />
           <Route path="orders" element={<Orders />} />
-          <Route
-            path="staff"
-            element={
-              <RequireAdmin>
-                <Staff />
-              </RequireAdmin>
-            }
-          />
+          <Route path="staff" element={<Staff />} />
         </Route>
       </Routes>
     </AdminAuthProvider>

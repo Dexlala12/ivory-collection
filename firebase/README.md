@@ -67,22 +67,18 @@ npx firebase-tools deploy --only firestore:rules,storage
 
 ## 8. Create your first admin login
 
-The admin portal uses regular Firebase email/password accounts. Every account that
-signs in at `/admin` for the first time gets a `profiles/{uid}` document created
-automatically with role `editor` — you promote the first one to `admin` manually:
+The admin portal has one flat access tier — anyone who can sign in at `/admin` can edit
+everything in it, so there's no separate "promote to admin" step.
 
 1. **Authentication → Users → Add user.** Enter an email + password for yourself.
 2. Go to `/admin` on the running site and sign in with that email/password once —
-   this creates your `profiles` document.
-3. **Firestore Database → Data → profiles → (your uid)** → edit the `role` field
-   from `editor` to `admin`.
-4. Refresh `/admin` — the **Staff** section is now visible.
+   this creates your `profiles` document automatically.
 
-Once you're an admin, use the **Staff** section in the portal to promote/demote other
-accounts. To add a new staff member: create their login the same way (step 1 above),
-then have them sign in once, then set their role from the **Staff** screen.
-(A self-service "invite" button isn't possible from a pure frontend without exposing
-a service-account key to the browser, so new logins are created here, once, per person.)
+From then on, add new staff logins from the **Staff** section in the portal itself
+(email + password — no need to go back to the Firebase console). Google sign-in is
+also wired up on the login screen, gated to a hardcoded email allowlist in
+`src/admin/AdminAuthContext.tsx` (`ALLOWED_GOOGLE_EMAILS`) since Google auth
+auto-provisions an account for any Google user on first login.
 
 ## What's editable vs. what isn't
 
