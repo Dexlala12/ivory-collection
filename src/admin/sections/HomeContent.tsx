@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { updateSiteContent, upsertPromoTile, deletePromoTile } from '../../lib/api';
@@ -13,6 +13,12 @@ function HeroCard() {
   const [form, setForm] = useState<HomeHeroContent>(homeHero);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  // homeHero starts as bundled fallback content and is replaced once the
+  // real Firestore fetch resolves — resync the draft when that happens so a
+  // fresh page load (or another tab's edit) doesn't leave this form showing
+  // stale data.
+  useEffect(() => setForm(homeHero), [homeHero]);
 
   const save = async () => {
     setSaving(true);
@@ -49,6 +55,8 @@ function MegaMenuCard() {
   const [form, setForm] = useState<HeaderContent['megaMenu']>(header.megaMenu);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setForm(header.megaMenu), [header.megaMenu]);
 
   const save = async () => {
     setSaving(true);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { updatePage, upsertFaq, deleteFaq } from '../../lib/api';
@@ -19,6 +19,8 @@ function PageEditor({ page: initial }: { page: Page }) {
   const [page, setPage] = useState<Page>(initial);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setPage(initial), [initial]);
 
   const updateSection = (i: number, patch: Partial<PageSection>) => {
     setPage({ ...page, sections: page.sections.map((s, si) => si === i ? { ...s, ...patch } : s) });

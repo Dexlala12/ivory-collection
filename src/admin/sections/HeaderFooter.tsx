@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { updateSiteContent } from '../../lib/api';
 import type { HeaderContent, FooterContent, LinkTarget } from '../../types';
@@ -13,6 +13,8 @@ function HeaderCard() {
   const [form, setForm] = useState<HeaderContent>(header);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setForm(header), [header]);
 
   const save = async () => {
     setSaving(true);
@@ -48,6 +50,8 @@ function FooterCard() {
   const [form, setForm] = useState<FooterContent>(footer);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setForm(footer), [footer]);
 
   const save = async () => {
     setSaving(true);

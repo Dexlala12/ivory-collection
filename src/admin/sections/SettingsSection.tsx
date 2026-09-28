@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { updateSettings, upsertPromoCode, deletePromoCode } from '../../lib/api';
@@ -12,6 +12,8 @@ function SettingsCard() {
   const [form, setForm] = useState<Settings>(settings);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setForm(settings), [settings]);
 
   const save = async () => {
     setSaving(true);
@@ -50,6 +52,8 @@ function BankCard() {
   const [form, setForm] = useState<Settings>(settings);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+
+  useEffect(() => setForm(settings), [settings]);
 
   const save = async () => {
     setSaving(true);
